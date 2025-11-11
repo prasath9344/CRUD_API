@@ -1,11 +1,11 @@
 name: Deploy CRUD-API Docker App to AWS EC2
 
 on:
-workflow_dispatch:
-inputs:
-name:
-description: "Deploy the CRUD-API from Dev"
-default: "dev"
+  workflow_dispatch:
+    inputs:
+      name:
+         description: "Deploy the CRUD-API from Dev"
+         default: "dev"
 
 permissions:
 id-token: write
