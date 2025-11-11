@@ -165,16 +165,19 @@ jobs:
 
           echo "Elastic IP is: $EIP"
           echo "public_ip=$EIP" >> $GITHUB_ENV
-
-      - name: Ensure ECR repository exists
-        run: |
-          aws ecr describe-repositories --repository-names crud-api-repo --region us-east-1 
-      
+          
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
         with:
            mask-password: true
+
+      - name: Ensure ECR repository exists
+        run: |
+          set -e
+          aws ecr describe-repositories --repository-names "${{ env.ECR_REPOSITORY }}" --region "${{ env.AWS_REGION }}" \
+            || aws ecr create-repository --repository-name "${{ env.ECR_REPOSITORY }}" --region "${{ env.AWS_REGION }}" --image-scanning-configuration scanOnPush=true
+
 
       - name: Build, tag, and push image to Amazon ECR
         id: build-image
@@ -182,9 +185,15 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          IMAGE_URI="${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
+          echo "Building image ${IMAGE_URI}"
+          docker build -t "${IMAGE_URI}" .
+          echo "Authenticating docker to ECR"
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin "${ECR_REGISTRY}"
+          docker push "${IMAGE_URI}"
+          echo "image=${IMAGE_URI}" >> $GITHUB_OUTPUT
+          # expose image uri as step output
+          echo "image_uri=${IMAGE_URI}" >> $GITHUB_OUTPUT
 
       - name: Get SSH Key
         run: |
