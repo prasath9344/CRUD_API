@@ -8,27 +8,27 @@ on:
          default: "dev"
 
 permissions:
-id-token: write
-contents: read
+  id-token: write
+  contents: read
 
 env:
-AWS_REGION: us-east-1
-ECR_REPOSITORY: crud-api
-CONTAINER_NAME: crud-api-cont
-INSTANCE_TYPE: t2.micro
-AMI_ID: ami-0c398cb65a93047f2
-KEY_NAME: crud-api-ec2-key
-INSTANCE_NAME: crud-api
-SECURITY_GROUP_NAME: rds-ec2-1
-SECURITY_GROUP_DESCRIPTION: "rds-ec2 created via Ec2"
-VPC_ID: vpc-053cc851f75c76519
-EIP_ALLOCATION_ID: eipalloc-048437fb367fc8d17
-ECR_ROLE_NAME: crud-api-new
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: crud-api
+  CONTAINER_NAME: crud-api-cont
+  INSTANCE_TYPE: t2.micro
+  AMI_ID: ami-0c398cb65a93047f2
+  KEY_NAME: crud-api-ec2-key
+  INSTANCE_NAME: crud-api
+  SECURITY_GROUP_NAME: rds-ec2-1
+  SECURITY_GROUP_DESCRIPTION: "rds-ec2 created via Ec2"
+  VPC_ID: vpc-053cc851f75c76519
+  EIP_ALLOCATION_ID: eipalloc-048437fb367fc8d17
+  ECR_ROLE_NAME: crud-api-new
 
 jobs:
-deploy:
-name: Deploy to AWS EC2
-runs-on: ubuntu-latest
+  deploy:
+    name: Deploy to AWS EC2
+    runs-on: ubuntu-latest
 
 steps:
   - name: Checkout
