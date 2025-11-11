@@ -191,110 +191,110 @@ run: |
   IMAGE_TAG="${{ github.sha }}"
   ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ env.public_ip }} << EOF
  
-# Update package lists and install Docker
-sudo apt-get update -y
-sudo apt-get install -y \
-gnupg \
-ca-certificates \
-curl \
-unzip \
-lsb-release \
-nginx \
-certbot \
-python3-certbot-nginx
+  # Update package lists and install Docker
+  sudo apt-get update -y
+  sudo apt-get install -y \
+  gnupg \
+  ca-certificates \
+  curl \
+  unzip \
+  lsb-release \
+  nginx \
+  certbot \
+  python3-certbot-nginx
 
-# Install Docker
-sudo curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-sudo usermod -aG docker ubuntu
-newgrp docker
+  # Install Docker
+  sudo curl -fsSL https://get.docker.com -o get-docker.sh
+  sudo sh get-docker.sh
+  sudo usermod -aG docker ubuntu
+  newgrp docker
 
-# Start and enable Docker service
-sudo systemctl start docker
-sudo systemctl enable docker
+  # Start and enable Docker service
+  sudo systemctl start docker
+  sudo systemctl enable docker
 
-# Cleanup existing containers/images
-docker stop ${CONTAINER_NAME} || true
-docker rm ${CONTAINER_NAME} || true
-docker rmi ${CONTAINER_NAME} || true
-docker system prune -af --volumes || true
+  # Cleanup existing containers/images
+  docker stop ${CONTAINER_NAME} || true
+  docker rm ${CONTAINER_NAME} || true
+  docker rmi ${CONTAINER_NAME} || true
+  docker system prune -af --volumes || true
 
-# Install AWS CLI v2 (if not installed)
-if ! command -v aws &> /dev/null; then
-sudo curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-unzip awscliv2.zip
-sudo ./aws/install
-aws --version
-fi
+  # Install AWS CLI v2 (if not installed)
+  if ! command -v aws &> /dev/null; then
+  sudo curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+  unzip awscliv2.zip
+  sudo ./aws/install
+  aws --version
+  fi
 
-# Re-authenticate Docker with Amazon ECR immediately before pulling images
-aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+  # Re-authenticate Docker with Amazon ECR immediately before pulling images
+  aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
 
-# Pull new image and deploy service using systemd
-docker pull ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
+  # Pull new image and deploy service using systemd
+  docker pull ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
 
-sudo rm -rf /home/ubuntu/.env
+  sudo rm -rf /home/ubuntu/.env
 
-echo "DATABASE=${{ secrets.DATABASE }}" >> .env
-echo "HOST=${{ secrets.HOST }}" >> .env
-echo "USER=${{ secrets.USER }}" >> .env
-echo "PASSWORD=${{ secrets.PASSWORD }}" >> .env
+  echo "DATABASE=${{ secrets.DATABASE }}" >> .env
+  echo "HOST=${{ secrets.HOST }}" >> .env
+  echo "USER=${{ secrets.USER }}" >> .env
+  echo "PASSWORD=${{ secrets.PASSWORD }}" >> .env
 
-chmod 600 /home/ubuntu/.env
+  chmod 600 /home/ubuntu/.env
 
-sudo tee /etc/systemd/system/$CONTAINER_NAME.service > /dev/null << SERVICE
-[Unit]
-Description=PrepyAI API Container
-After=network.target docker.service
-Requires=docker.service
+  sudo tee /etc/systemd/system/$CONTAINER_NAME.service > /dev/null << SERVICE
+  [Unit]
+  Description=PrepyAI API Container
+  After=network.target docker.service
+  Requires=docker.service
 
-[Service]
-Restart=always
-ExecStartPre=-/usr/bin/docker stop ${CONTAINER_NAME}
-ExecStartPre=-/usr/bin/docker rm ${CONTAINER_NAME}
-ExecStart=/usr/bin/docker run --rm --name ${CONTAINER_NAME} --env-file /home/ubuntu/.env -p 5000:5000 ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
-ExecStop=/usr/bin/docker stop ${CONTAINER_NAME}
+  [Service]
+  Restart=always
+  ExecStartPre=-/usr/bin/docker stop ${CONTAINER_NAME}
+  ExecStartPre=-/usr/bin/docker rm ${CONTAINER_NAME}
+  ExecStart=/usr/bin/docker run --rm --name ${CONTAINER_NAME} --env-file /home/ubuntu/.env -p 5000:5000 ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$IMAGE_TAG
+  ExecStop=/usr/bin/docker stop ${CONTAINER_NAME}
 
-[Install]
-WantedBy=multi-user.target
-SERVICE
+  [Install]
+  WantedBy=multi-user.target
+  SERVICE
 
-- name: Enable systemd service on EC2
+  - name: Enable systemd service on EC2
+  run: |
+  ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ env.public_ip }} << EOF
+  # Start systemd service
+  sudo systemctl daemon-reload
+  sudo systemctl enable ${CONTAINER_NAME}
+  sudo systemctl start ${CONTAINER_NAME}
+
+  - name: Set up Nginx reverse proxy
+  run: |
+  ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ env.public_ip }} << EOF
+  # Set up Nginx reverse proxy
+  sudo bash -c "cat > /etc/nginx/sites-available/${CONTAINER_NAME}" <<'EOL'
+  server {
+  listen 80;
+  server_name prepyapi.adraproductstudio.com;
+
+  location / {
+  proxy_pass http://localhost:5000;
+  proxy_set_header Host \$host;
+  proxy_set_header X-Real-IP \$remote_addr;
+  proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+  proxy_set_header X-Forwarded-Proto \$scheme;
+  }
+  }
+  EOL
+
+-name: Enable Nginx site and restart (Enable HTTPS)
 run: |
-ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ env.public_ip }} << EOF
-# Start systemd service
-sudo systemctl daemon-reload
-sudo systemctl enable ${CONTAINER_NAME}
-sudo systemctl start ${CONTAINER_NAME}
+  ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ env.public_ip }} << EOF
+  # Enable Nginx site and restart
+  sudo rm /etc/nginx/sites-enabled/default
+  sudo ln -s /etc/nginx/sites-available/${CONTAINER_NAME} /etc/nginx/sites-enabled/
+  sudo nginx -t && sudo systemctl restart nginx
 
-- name: Set up Nginx reverse proxy
-run: |
-ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ env.public_ip }} << EOF
-# Set up Nginx reverse proxy
-sudo bash -c "cat > /etc/nginx/sites-available/${CONTAINER_NAME}" <<'EOL'
-server {
-listen 80;
-server_name prepyapi.adraproductstudio.com;
+  # Request Let's Encrypt SSL Certificate
+  sudo certbot --nginx -d prepyapi.adraproductstudio.com --non-interactive --agree-tos -m engineering@adraproductstudio.com
 
-location / {
-proxy_pass http://localhost:5000;
-proxy_set_header Host \$host;
-proxy_set_header X-Real-IP \$remote_addr;
-proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-proxy_set_header X-Forwarded-Proto \$scheme;
-}
-}
-EOL
-
-- name: Enable Nginx site and restart (Enable HTTPS)
-run: |
-ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ env.public_ip }} << EOF
-# Enable Nginx site and restart
-sudo rm /etc/nginx/sites-enabled/default
-sudo ln -s /etc/nginx/sites-available/${CONTAINER_NAME} /etc/nginx/sites-enabled/
-sudo nginx -t && sudo systemctl restart nginx
-
-# Request Let's Encrypt SSL Certificate
-sudo certbot --nginx -d prepyapi.adraproductstudio.com --non-interactive --agree-tos -m engineering@adraproductstudio.com
-
-# Auto-renewal (already set by Certbot via cron or systemd)
+  # Auto-renewal (already set by Certbot via cron or systemd)
