@@ -24,7 +24,7 @@ env:
   VPC_ID: vpc-053cc851f75c76519
   EIP_ALLOCATION_ID: eipalloc-048437fb367fc8d17
   ECR_ROLE_NAME: crud-api-new  
-
+  SNAPSHOT_ID: snap-0e534a0cfe1044b97
 jobs:
   deploy:
     name: Deploy to AWS EC2
@@ -103,7 +103,7 @@ jobs:
               fi
             done
 
-      - name: Check if EC2 Instance Exists
+      - name: Check if EC2 Instance ExistsSnapshotId
         id: check-instance
         run: |
           INSTANCE_ID=$(aws ec2 describe-instances \
