@@ -36,10 +36,9 @@ uses: actions/checkout@v2
 -name: Configure AWS Credentials
 uses: aws-actions/configure-aws-credentials@v4
 with:
-audience: sts.amazonaws.com
-aws-region: ${{ env.AWS_REGION }}
-role-to-assume: 
-  arn:aws:iam::575327645493:role/crud-api-new
+  audience: sts.amazonaws.com
+  aws-region: ${{ env.AWS_REGION }}
+  role-to-assume: arn:aws:iam::575327645493:role/crud-api-new
 - name: Check if Security Group Exists
 id: check-security-group
 run: |
