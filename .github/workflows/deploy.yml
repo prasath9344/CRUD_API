@@ -165,8 +165,7 @@ run: |
 
   echo "Elastic IP is: $EIP"
   echo "public_ip=$EIP" >> $GITHUB_ENV
-
-- name: Login to Amazon ECR
+-name: Login to Amazon ECR
 id: login-ecr
 uses: aws-actions/amazon-ecr-login@v2
 with:
@@ -178,19 +177,19 @@ env:
 ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
 IMAGE_TAG: ${{ github.sha }}
 run: |
-docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+  docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+  docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+  echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-- name: Get SSH Key
+-name: Get SSH Key
 run: |
-echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > private_key.pem
-chmod 600 private_key.pem
+  echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > private_key.pem
+  chmod 600 private_key.pem
 
-- name: Deploy to EC2
+-name: Deploy to EC2
 run: |
-IMAGE_TAG="${{ github.sha }}"
-ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ env.public_ip }} << EOF
+  IMAGE_TAG="${{ github.sha }}"
+  ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ env.public_ip }} << EOF
 
 # Update package lists and install Docker
 sudo apt-get update -y
