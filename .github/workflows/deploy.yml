@@ -171,7 +171,7 @@ uses: aws-actions/amazon-ecr-login@v2
 with:
 mask-password: true
 
-- name: Build, tag, and push image to Amazon ECR
+-name: Build, tag, and push image to Amazon ECR
 id: build-image
 env:
 ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -190,7 +190,7 @@ run: |
 run: |
   IMAGE_TAG="${{ github.sha }}"
   ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ env.public_ip }} << EOF
-
+ 
 # Update package lists and install Docker
 sudo apt-get update -y
 sudo apt-get install -y \
