@@ -241,19 +241,6 @@ echo "DATABASE=${{ secrets.DATABASE }}" >> .env
 echo "HOST=${{ secrets.HOST }}" >> .env
 echo "USER=${{ secrets.USER }}" >> .env
 echo "PASSWORD=${{ secrets.PASSWORD }}" >> .env
-echo "MYSQL_AUTOCOMMIT=${{ secrets.MYSQL_AUTOCOMMIT }}" >> .env
-echo "MYSQL_CONNECT_TIMEOUT=${{ secrets.MYSQL_CONNECT_TIMEOUT }}" >> .env
-echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
-echo "SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }}" >> .env
-echo "SENDER_EMAIL=${{ secrets.SENDER_EMAIL }}" >> .env
-echo "REDIRECT_URI=${{ secrets.REDIRECT_URI }}" >> .env
-echo "JWT_ACCESS_TOKEN_EXPIRES=${{ secrets.JWT_ACCESS_TOKEN_EXPIRES }}" >> .env
-echo "JWT_REFRESH_TOKEN_EXPIRES=${{ secrets.JWT_REFRESH_TOKEN_EXPIRES }}" >> .env
-echo "CLIENT_ID=${{ secrets.CLIENT_ID }}" >> .env
-echo "CLIENT_SECRET=${{ secrets.CLIENT_SECRET }}" >> .env
-echo "TOKEN_URI=${{ secrets.TOKEN_URI }}" >> .env
-echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
-echo "PROJECT_ID=${{ secrets.PROJECT_ID }}" >> .env
 
 chmod 600 /home/ubuntu/.env
 
