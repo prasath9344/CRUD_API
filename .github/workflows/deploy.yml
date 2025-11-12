@@ -302,6 +302,13 @@ jobs:
 
           echo "✅ Domain and EC2 IP match."
 
+          sudo certbot --nginx -d praveenm.me \
+  
+  
+          --non-interactive --agree-tos \
+          -m your@email.com \
+          --staging
+
 
       - name: Enable Nginx site and restart (Enable HTTPS)
         run: |
