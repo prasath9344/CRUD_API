@@ -19,10 +19,10 @@ env:
   AMI_ID: ami-0c398cb65a93047f2
   KEY_NAME: crud-api-ec2-key
   INSTANCE_NAME: crud-api
-  SECURITY_GROUP_NAME: launch-wizard-2
-  SECURITY_GROUP_DESCRIPTION: "launch-wizard-2 created via GitHub Actions"
+  SECURITY_GROUP_NAME: ec2-rds-4
+  SECURITY_GROUP_DESCRIPTION: "ec2-rds-4 created via GitHub Actions"
   VPC_ID: vpc-053cc851f75c76519
-  EIP_ALLOCATION_ID: eipalloc-048437fb367fc8d17
+  EIP_ALLOCATION_ID: eipalloc-05f6add6194ad2fdf
   ECR_ROLE_NAME: crud-api-new  
   
 jobs:
