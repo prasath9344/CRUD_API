@@ -286,16 +286,31 @@ jobs:
                 }
             }
             EOL
+            EOF
+
+      # ✅ Add this step here (before Certbot)
+      - name: Verify DNS and Port 80 Access
+        run: |
+          DOMAIN_IP=$(dig +short praveenm.me)
+          echo "🔍 Domain resolves to: $DOMAIN_IP"
+          echo "🏠 Expected EC2 IP: ${{ env.public_ip }}"
+          if [ "$DOMAIN_IP" != "${{ env.public_ip }}" ]; then
+            echo "❌ Domain does not point to this EC2 instance. Fix DNS first."
+            exit 1
+          fi
+
+          echo "🌐 Checking if port 80 is open..."
+          nc -zv ${{ env.public_ip }} 80 || (echo "❌ Port 80 is closed or blocked." && exit 1)
+          echo "✅ Domain and port 80 reachable"
 
       - name: Enable Nginx site and restart (Enable HTTPS)
         run: |
               ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@${{ env.public_ip }} << EOF
               # Enable Nginx site and restart
-              sudo rm /etc/nginx/sites-enabled/default
-              sudo ln -s /etc/nginx/sites-available/${CONTAINER_NAME} /etc/nginx/sites-enabled/
+              sudo rm /etc/nginx/sites-enabled/default || true
+              sudo ln -sf /etc/nginx/sites-available/${CONTAINER_NAME} /etc/nginx/sites-enabled/${CONTAINER_NAME}
               sudo nginx -t && sudo systemctl restart nginx
 
               # Request Let's Encrypt SSL Certificate
               sudo certbot --nginx -d praveenm.me --non-interactive --agree-tos -m praveen.work.cyber@gmail.com
-
-              # Auto-renewal (already set by Certbot via cron or systemd)
+              EOF
