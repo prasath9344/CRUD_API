@@ -182,18 +182,6 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT       
 
-      - name: Deploy to EC2
-        run: |
-          ssh -o StrictHostKeyChecking=no -i private_key.pem ubuntu@98.89.49.16 << 'EOF'
-            sudo apt-get update -y
-            sudo apt-get install -y certbot python3-certbot-nginx
-            sudo systemctl start nginx
-            sudo systemctl enable nginx
-            # (your existing commands go here, e.g. removing default config, linking, etc.)
-            sudo certbot --nginx -d praveenm.me --non-interactive --agree-tos -m your@email.com
-          EOF
-
-
       - name: Get SSH Key
         run: |
           echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > private_key.pem
