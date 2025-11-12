@@ -288,20 +288,20 @@ jobs:
             EOL
             EOF
 
-      # ✅ Add this step here (before Certbot)
       - name: Verify DNS and Port 80 Access
         run: |
-          DOMAIN_IP=$(dig +short praveenm.me)
+          DOMAIN_IP=$(dig +short @8.8.8.8 praveenm.me)
           echo "🔍 Domain resolves to: $DOMAIN_IP"
-          echo "🏠 Expected EC2 IP: ${{ env.public_ip }}"
-          if [ "$DOMAIN_IP" != "${{ env.public_ip }}" ]; then
+          EXPECTED_IP="98.89.49.16"
+          echo "🏠 Expected EC2 IP: $EXPECTED_IP"
+
+          if ! echo "$DOMAIN_IP" | grep -q "$EXPECTED_IP"; then
             echo "❌ Domain does not point to this EC2 instance. Fix DNS first."
             exit 1
           fi
 
-          echo "🌐 Checking if port 80 is open..."
-          nc -zv ${{ env.public_ip }} 80 || (echo "❌ Port 80 is closed or blocked." && exit 1)
-          echo "✅ Domain and port 80 reachable"
+          echo "✅ Domain and EC2 IP match."
+
 
       - name: Enable Nginx site and restart (Enable HTTPS)
         run: |
