@@ -245,7 +245,7 @@ jobs:
         
           sudo tee /etc/systemd/system/$CONTAINER_NAME.service > /dev/null << SERVICE
           [Unit]
-          Description=PrepyAI API Container 
+          Description=CRUD_API Container 
           After=network.target docker.service
           Requires=docker.service
 
