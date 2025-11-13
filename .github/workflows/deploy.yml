@@ -243,6 +243,12 @@ jobs:
         
           chmod 600 /home/ubuntu/.env
         
+          sudo docker run -d \
+          --name crudapi-cont \
+          --env-file /home/ubuntu/.env \
+          -p 5000:5000 \
+          575327645493.dkr.ecr.us-east-1.amazonaws.com/crud-api-repo:${{ github.sha }}
+
           sudo tee /etc/systemd/system/$CONTAINER_NAME.service > /dev/null << SERVICE
           [Unit]
           Description=CRUD_API Container 
