@@ -19,10 +19,10 @@ env:
   AMI_ID: ami-0c398cb65a93047f2
   KEY_NAME: crud-api-ec2-key
   INSTANCE_NAME: crud-api
-  SECURITY_GROUP_NAME: ec2-rds-4
-  SECURITY_GROUP_DESCRIPTION: "ec2-rds-4 created via GitHub Actions"
+  SECURITY_GROUP_NAME: ec2-rds-5
+  SECURITY_GROUP_DESCRIPTION: "ec2-rds-5 created via GitHub Actions"
   VPC_ID: vpc-053cc851f75c76519
-  EIP_ALLOCATION_ID: eipalloc-05f6add6194ad2fdf
+  EIP_ALLOCATION_ID: eipalloc-06c40941c65723658
   ECR_ROLE_NAME: crud-api-new  
   
 jobs:
@@ -292,7 +292,7 @@ jobs:
         run: |
           DOMAIN_IP=$(dig +short @8.8.8.8 praveenm.me)
           echo "🔍 Domain resolves to: $DOMAIN_IP"
-          EXPECTED_IP="98.89.49.16"
+          EXPECTED_IP="3.85.168.209"
           echo "🏠 Expected EC2 IP: $EXPECTED_IP"
 
           if ! echo "$DOMAIN_IP" | grep -q "$EXPECTED_IP"; then
